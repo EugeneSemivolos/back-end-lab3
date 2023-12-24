@@ -1,15 +1,19 @@
 import uuid
-from src import app
-from flask import jsonify, request
+from flask import Blueprint, jsonify, request
 from ..schemas.Schemas import categorySchema
+from sqlalchemy.exc import IntegrityError
+from ..models.category import categoryModel
+from ..db import db
 
-categories = {}
+category_blueprint = Blueprint('category', __name__)
 
-@app.get("/category")
+@category_blueprint.get("/category")
 def categories_get():
-    return list(categories.values())
+    categories_list = categoryModel.query.all()
+    schema = categorySchema()
+    return schema.dump(obj=categories_list, many=True)
 
-@app.post("/category")
+@category_blueprint.post("/category")
 def create_category():
     category_data = request.args
     category_schema = categorySchema()
@@ -18,13 +22,21 @@ def create_category():
     except Exception as e:
         return "Incorrect category data", 400
     validated_data["id"] = uuid.uuid4().hex
-    categories[validated_data["id"]] = validated_data
+    category = categoryModel(**validated_data)
+    try:
+        db.session.add(category)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return "A category with this name already exists", 400
     return validated_data
 
-@app.delete("/category/<category_id>")
+@category_blueprint.delete("/category/<category_id>")
 def category_delete(category_id):
-    if category_id in categories:
-        del categories[category_id]
+    category = categoryModel.query.get(category_id)
+    if category:
+        db.session.delete(category)
+        db.session.commit()
         return "", 204
     else:
         return "Category not found", 404
