@@ -11,7 +11,7 @@ category_blueprint = Blueprint('category', __name__)
 def categories_get():
     user_id = request.args.get('user_id')
     categories_list = categoryModel.query.filter(categoryModel.user_id == user_id).all()
-    categories_list = categoryModel.query.all()
+    categories_list.extend(categoryModel.query.filter(not categoryModel.user_id).all())
     schema = categorySchema()
     return schema.dump(obj=categories_list, many=True)
 

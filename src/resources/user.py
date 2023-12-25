@@ -56,3 +56,8 @@ def users_get():
 def healthcheck():
     time = datetime.datetime.now().isoformat()
     health = "It`s works!"
+    data = {
+        "time": time,
+        "health": health
+    }
+    return jsonify(data)
