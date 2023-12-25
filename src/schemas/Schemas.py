@@ -7,6 +7,7 @@ class userSchema(Schema):
 class categorySchema(Schema):
     id = fields.UUID(dump_only=True)
     name = fields.String(required=True)
+    user_id = fields.UUID(required=False)
 
 
 class recordSchema(Schema):

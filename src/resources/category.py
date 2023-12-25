@@ -9,6 +9,8 @@ category_blueprint = Blueprint('category', __name__)
 
 @category_blueprint.get("/category")
 def categories_get():
+    user_id = request.args.get('user_id')
+    categories_list = categoryModel.query.filter(categoryModel.user_id == user_id).all()
     categories_list = categoryModel.query.all()
     schema = categorySchema()
     return schema.dump(obj=categories_list, many=True)
@@ -33,10 +35,14 @@ def create_category():
 
 @category_blueprint.delete("/category/<category_id>")
 def category_delete(category_id):
+    user_id = request.args.get('user_id')
     category = categoryModel.query.get(category_id)
     if category:
-        db.session.delete(category)
-        db.session.commit()
-        return "", 204
+        if(not user_id or user_id != category.user_id):
+            db.session.delete(category)
+            db.session.commit()
+            return "", 204
+        else:
+            return "This is not search category"
     else:
         return "Category not found", 404
