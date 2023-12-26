@@ -10,5 +10,8 @@ WORKDIR /src
 
 ENV FLASK_APP=src/__init__
 
+RUN flask db init
+RUN flask db migrate
+RUN flask db upgrade
 
 CMD flask run -h 0.0.0.0 -p $PORT
